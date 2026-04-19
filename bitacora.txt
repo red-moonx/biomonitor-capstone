@@ -93,3 +93,9 @@ This document records the exact technical steps taken to build the infrastructur
 
 3. **Dependency Update:**
    - Added `gcsfs` to handle Google Cloud Storage filesystem operations within Python.
+
+4. **Massive Ingestion (Scale Up):**
+   - Implemented API Pagination (looping with 'offset' and 'limit').
+   - Successful load of **10,000 global records** of Mammalia.
+   - Verification: Confirmed data staging in GCS Parquet files before BigQuery load.
+   - Status: **RAW LAYER COMPLETE**. Ready for dbt transformation.
