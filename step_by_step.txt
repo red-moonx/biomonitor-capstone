@@ -1,0 +1,37 @@
+# Technical Step-by-Step Guide: BioMonitor Pipeline
+
+This document records the exact technical steps taken to build the infrastructure and pipeline.
+
+## Phase 1: Cloud Infrastructure Setup (GCP)
+1. **Project Creation:**
+   - Created a dedicated Google Cloud Project.
+   - Project ID: biomonitorcapstone
+
+2. **IAM & Service Account (Done):**
+   - Service Account Name: biomonitor-runner
+   - Roles assigned:
+     - Storage Admin (Full control of GCS buckets)
+     - BigQuery Admin (Full control of datasets and tables)
+     - Viewer (Project-level visibility)
+   - Action: JSON Key generated and uploaded as google_credentials.json
+
+3. **Next Technical Tasks:**
+   - Enable BigQuery and Cloud Storage APIs.
+   - Configure Terraform with the Service Account JSON.
+   - Setup Environment Variables.
+
+## Phase 2: Infrastructure as Code (Terraform)
+1. **Configuration Files:**
+   - Created `terraform/variables.tf` to centralize project parameters (ID, Region, Bucket/Dataset names).
+   - Created `terraform/main.tf` defining GCS Bucket and BigQuery Dataset resources.
+
+2. **Environment Challenge & Solution:**
+   - Encountered network/permission issues installing Terraform binary directly on Codespace host.
+   - **Solution:** Implemented Docker-based Terraform execution to ensure portability and avoid host dependency.
+
+3. **Execution - Init:**
+   - Command used: 
+     `docker run --rm -v /workspaces/biomonitor-capstone:/workspace -w /workspace/terraform hashicorp/terraform:latest init`
+   - Result: **SUCCESS**. Terraform initialized with Google provider v7.28.0.
+
+4. **Status:** Ready for `plan` and `apply`.

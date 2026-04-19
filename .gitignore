@@ -1,0 +1,16 @@
+# Project Specific Knowledge
+info_for_antigravity.txt
+
+# GCP Secrets
+*.json
+.env
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Python/Airflow
+__pycache__/
+logs/
+.venv/
