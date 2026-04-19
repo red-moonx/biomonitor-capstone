@@ -34,4 +34,50 @@ This document records the exact technical steps taken to build the infrastructur
      `docker run --rm -v /workspaces/biomonitor-capstone:/workspace -w /workspace/terraform hashicorp/terraform:latest init`
    - Result: **SUCCESS**. Terraform initialized with Google provider v7.28.0.
 
-4. **Status:** Ready for `plan` and `apply`.
+4. **Git & GitHub Workaround:**
+   - Encountered 403 Forbidden error during HTTPS push.
+   - **Solution:** Switched to SSH authentication. 
+   - Generated ED25519 key, added to GitHub profile, and updated remote URL to `git@github.com:red-moonx/biomonitor-capstone.git`.
+   - Result: **SUCCESS**. First push completed.
+
+5. **Refactoring & Filesystem Cleanup:**
+   - Removed duplicate/empty `terraform/terraform` folder.
+   - Removed residual `terraform.zip` and binary files to maintain repo health.
+
+6. **Execution - Plan:**
+   - Command used: 
+     `docker run --rm -v /workspaces/biomonitor-capstone:/workspace -w /workspace/terraform hashicorp/terraform:latest plan`
+   - Result: **SUCCESS**. Terraform confirmed the creation of 2 resources (Bucket & BQ Dataset).
+
+7. **Execution - Apply:**
+   - Command used: 
+     `docker run --rm -v /workspaces/biomonitor-capstone:/workspace -w /workspace/terraform hashicorp/terraform:latest apply -auto-approve`
+   - Challenge: 400 Error due to uppercase letters in Bucket Name (`DEcapstone`).
+   - Fix: Updated `variables.tf` with lowercase bucket name (`decapstone`).
+   - Result: **SUCCESS**. 
+     - BigQuery Dataset: `biomonitor_data` created.
+     - GCS Bucket: `biomonitor-data-lake-decapstone` created.
+
+## Phase 3: Data Ingestion (dlt)
+1. **Environment Setup:**
+   - Used `uv` for lightning-fast Python dependency management.
+   - Initialized project in `ingestion/` folder.
+   - Installed `dlt[bigquery]` and `pandas`.
+
+2. **Source Implementation:**
+   - Created `gbif_ingestion.py` using Python generators (`yield`) to handle data streams efficiently.
+   - Target: GBIF Occurrence API (Mammalia in Spain).
+
+3. **Credential Management:**
+   - Configured `ingestion/.dlt/secrets.toml` to point to the existing `google_credentials.json`.
+   - Result: Successful authentication with GCP Service Account.
+
+4. **Regional Troubleshooting:**
+   - Problem: Pipeline failed because it defaulted to BigQuery location `US`, but our infrastructure was in `EU`.
+   - Fix: Created `ingestion/.dlt/config.toml` forcing `location = "EU"`.
+
+5. **Execution:**
+   - Command: `uv run gbif_ingestion.py`
+   - Result: **SUCCESS**. 
+   - Table `raw_occurrences` and 10+ child tables created automatically in BigQuery.
+   - Initial load: 500 records successfully ingested.

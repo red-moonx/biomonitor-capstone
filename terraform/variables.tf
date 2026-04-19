@@ -20,7 +20,7 @@ variable "bq_dataset_name" {
 
 variable "gcs_bucket_name" {
   description = "torage Bucket name"
-  default     = "biomonitor-data-lake-DEcapstone"
+  default     = "biomonitor-data-lake-decapstone"
 }
 
 variable "gcs_storage_class" {
