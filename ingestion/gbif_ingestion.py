@@ -2,39 +2,39 @@ import dlt
 import requests
 
 def get_gbif_data():
-    """Request data to GBIF's API"""
+    """Request global Mammalia data from GBIF's API"""
     url = "https://api.gbif.org/v1/occurrence/search"
     
-    # Initial parameters to test (500 ocurrences; mammals in Spain)
+    # Global parameters: Mammalia class (classKey: 359)
+    # 10,000 records to provide local/global trends and justify BigQuery partitioning
     params = {
         "classKey": 359,  # Mammalia
-        "country": "ES",
-        "limit": 500,
+        "limit": 10000,
         "occurrenceStatus": "PRESENT"
     }
 
     response = requests.get(url, params=params)
     response.raise_for_status()
     
-    # Extract occurences (in results)
+    # Extract occurrences from results
     data = response.json().get("results", [])
     
     for record in data:
         yield record
 
 def run_pipeline():
-    """Config and running of dlt pipeline"""
+    """Configures and runs the dlt pipeline with GCS staging (Data Lake)"""
     
-    # Create pipeline. 
-    # dlt reads the credentials (here, GCS credentials).
+    # Using filesystem destination for GCS staging
     pipeline = dlt.pipeline(
-        pipeline_name="gbif_biodiversity",
+        pipeline_name="mammal_monitor_global",
         destination="bigquery",
-        dataset_name="biomonitor_data" # created with Terraform
+        staging="filesystem",
+        dataset_name="biomonitor_data"
     )
 
-    # Start loading data!
-    info = pipeline.run(get_gbif_data(), table_name="raw_occurrences")
+    # Launch ingestion into the 'raw_mammals' table
+    info = pipeline.run(get_gbif_data(), table_name="raw_mammals")
     
     print(info)
 

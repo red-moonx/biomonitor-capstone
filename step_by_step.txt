@@ -76,8 +76,20 @@ This document records the exact technical steps taken to build the infrastructur
    - Problem: Pipeline failed because it defaulted to BigQuery location `US`, but our infrastructure was in `EU`.
    - Fix: Created `ingestion/.dlt/config.toml` forcing `location = "EU"`.
 
-5. **Execution:**
+5. **Execution & Refinement:**
    - Command: `uv run gbif_ingestion.py`
-   - Result: **SUCCESS**. 
-   - Table `raw_occurrences` and 10+ child tables created automatically in BigQuery.
-   - Initial load: 500 records successfully ingested.
+   - Initial Result: **SUCCESS**. 
+   - Regional Adjustment: Pipeline now forced to `location = "EU"` to match infrastructure.
+
+## Phase 4: Scaling & Compliance (Global BioMonitor)
+1. **Redefinition of Scope:**
+   - Transitioned from "Mammals in Spain" to **"Global Mammal Biodiversity"**.
+   - Justification: Reach significant data volume to demonstrate Data Warehouse optimization (Partitioning/Clustering).
+
+2. **Data Lake Compliance (GCS Staging):**
+   - Goal: Meet course criteria for "End-to-End Pipeline" (API -> Lake -> Warehouse).
+   - Implementation: Configured `dlt` with `staging="filesystem"` pointing to `gs://biomonitor-data-lake-decapstone`.
+   - Result: Data is stored as Parquet in GCS before being moved to BigQuery.
+
+3. **Dependency Update:**
+   - Added `gcsfs` to handle Google Cloud Storage filesystem operations within Python.

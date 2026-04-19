@@ -1,9 +1,13 @@
 # 🌿 BioMonitor: Global Biodiversity Tracking & Conservation Pipeline
 
-## 📖 Project Overview
-BioMonitor is an end-to-end data pipeline designed to ingest, process, and visualize global species occurrence data. By leveraging the **GBIF (Global Biodiversity Information Facility) API**, this project tracks sightings of endangered and protected species across different temporal and geographical dimensions.
+## 📖 Problem Statement
+Biodiversity data is currently being generated at an unprecedented scale from disparate sources: professional research, satellite monitoring, and large-scale citizen science platforms. However, this global data is often **inaccessible** due to complex API structures, **messy** with over 100 columns of inconsistent metadata, and **not optimized** for cost-effective spatial or temporal analysis.
 
-The goal of this project is to provide a robust framework for monitoring biodiversity trends, helping conservationists and researchers identify hotspots and decline patterns using modern data engineering tools.
+**Global BioMonitor** solves this by providing an automated end-to-end ELT pipeline that:
+1.  **Ingests** worldwide species occurrences without geographic restrictions.
+2.  **Centralizes** raw data into a scalable Data Lake (GCS).
+3.  **Transforms and Optimizes** the data in a BigQuery Data Warehouse using partitioning and clustering.
+4.  **Visualizes** trends to help stakeholders identify ecological hotspots and data coverage gaps globally.
 
 ## 🏗️ Architecture
 The pipeline follows standard data engineering best practices learned during the **Data Engineering Zoomcamp**:

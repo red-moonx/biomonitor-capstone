@@ -14,3 +14,6 @@ info_for_antigravity.txt
 __pycache__/
 logs/
 .venv/
+.venv/
+ingestion/.dlt/
+ingestion/uv.lock
