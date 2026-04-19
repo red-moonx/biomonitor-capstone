@@ -1,46 +1,73 @@
 import dlt
 import requests
+from datetime import datetime
 
-def get_gbif_data(target_limit=10000):
-    """Request global Mammalia data from GBIF's API using pagination."""
+def get_gbif_data_month_by_month(start_year=2015, end_year=2026, limit_per_month=10000):
+    """
+    Request global Mammalia data from GBIF's API iterating through YEARS and MONTHS.
+    This ensures a balanced seasonal dataset and bypasses the 100k offset limit.
+    """
     url = "https://api.gbif.org/v1/occurrence/search"
-    offset = 0
-    records_fetched = 0
-    page_size = 300 # Max allowed by GBIF per request
+    page_size = 300 
+    global_records_fetched = 0
 
-    print(f"Starting ingestion for {target_limit} records...")
+    print(f"Starting SCIENTIFIC ingestion (balanced by months) from {start_year} to {end_year}...")
 
-    while records_fetched < target_limit:
-        # Calculate how many to ask for in this page
-        current_limit = min(page_size, target_limit - records_fetched)
-        
-        params = {
-            "classKey": 359,  # Mammalia
-            "limit": current_limit,
-            "offset": offset,
-            "occurrenceStatus": "PRESENT"
-        }
-
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        
-        data = response.json()
-        results = data.get("results", [])
-        
-        if not results:
-            break
+    for year in range(start_year, end_year + 1):
+        for month in range(1, 13):
+            # Skip future months if we are in the current year
+            if year == datetime.now().year and month > datetime.now().month:
+                break
+                
+            offset = 0
+            month_records_fetched = 0
             
-        for record in results:
-            yield record
-            records_fetched += 1
+            print(f">>> Fetching: {year}-{month:02d} (Target: {limit_per_month} records)")
             
-        offset += len(results)
-        print(f"Progress: {records_fetched}/{target_limit} records fetched...")
+            while month_records_fetched < limit_per_month:
+                params = {
+                    "classKey": 359,  # Mammalia
+                    "year": year,
+                    "month": month,
+                    "limit": page_size,
+                    "offset": offset,
+                    "occurrenceStatus": "PRESENT"
+                }
+
+                try:
+                    response = requests.get(url, params=params, timeout=30)
+                    response.raise_for_status()
+                except Exception as e:
+                    print(f"   Error in {year}-{month} at offset {offset}: {e}")
+                    break
+                
+                data = response.json()
+                results = data.get("results", [])
+                
+                if not results:
+                    break
+                    
+                for record in results:
+                    yield record
+                    month_records_fetched += 1
+                    global_records_fetched += 1
+                    
+                offset += len(results)
+                
+                # Check GBIF safety limit
+                if offset >= 100000:
+                    break
+
+            print(f"   Done {year}-{month:02d}: {month_records_fetched} records. (Total: {global_records_fetched})")
+
+    print(f"\n--- Ingestion Finished. Total balanced records: {global_records_fetched} ---")
 
 def run_pipeline():
     """Configures and runs the dlt pipeline with GCS staging (Data Lake)"""
     
-    # Using filesystem destination for GCS staging
+    current_year = datetime.now().year
+    start_year = current_year - 11 
+    
     pipeline = dlt.pipeline(
         pipeline_name="mammal_monitor_global",
         destination="bigquery",
@@ -48,10 +75,9 @@ def run_pipeline():
         dataset_name="biomonitor_data"
     )
 
-    # Launch ingestion into the 'raw_mammals' table
-    # 'replace' ensures we start fresh and delete any old data from previous tests
+    # We use limit_per_month=10000 to get a solid 1M+ dataset across 10 years
     info = pipeline.run(
-        get_gbif_data(), 
+        get_gbif_data_month_by_month(start_year=start_year, end_year=current_year, limit_per_month=10000), 
         table_name="raw_mammals", 
         write_disposition="replace"
     )

@@ -41,8 +41,24 @@ To ensure the integrity of the analytical layer, I implemented dbt's built-in te
 
 **Result:** All transformations and quality tests have passed successfully, yielding a robust and production-ready staging layer.
 
+### 3.3 Analytics & Marts Layer
+To bridge the gap between technical cleaning and biological analysis, I implemented a **Core Marts** layer. 
+*   **Enrichment:** Developed a `fct_biodiversity_sightings` model that adds intuitive dimensions:
+    *   **Seasonality:** A calculated "Season" field (Spring, Summer, etc.) based on sighting months to enable migration analysis.
+    *   **Conservation Labeling:** Replaced technical IUCN codes with human-readable severity status:
+        *   **CR (Critically Endangered) & EN (Endangered):** Unified as "High Priority".
+        *   **VU (Vulnerable) & NT (Near Threatened):** Unified as "Medium Monitoring".
+        *   **LC (Least Concern):** Classified as "Low Concern".
+*   **Significance:** This layer simplifies the dashboarding process, allowing non-technical users to draw insights directly without knowing the underlying scientific codes.
+
 ## 4. Orchestration (Airflow)
-*Planned/Current:* Using Apache Airflow to orchestrate the full cycle: triggering the `dlt` ingestion script followed by the `dbt build` command to ensure the pipeline is hands-off and reliable.
+I implemented **Apache Airflow** to orchestrate the end-to-end data lifecycle. 
+*   **Workflow:** The pipeline is defined as a Directed Acyclic Graph (DAG) that sequentially triggers the `dlt` ingestion and the `dbt` transformation.
+*   **Schedule:** Configured with a `@monthly` interval (running on the first day of each month).
+*   **Scale-up Decision & Implementation:** Once the core `dlt` + `dbt` orchestration was validated, I performed a major scale-up to a 10-year historical range.
+    *   **Python Logic Refactor:** The `gbif_ingestion.py` script was upgraded from a simple pagination loop to a nested **Year-over-Month iteration**.
+    *   **Scientific Rationale:** I configured the pipeline to extract **10,000 records per month**. This specific volume ensures we stay below the API's 100,000 global offset limit per query while guaranteeing a seasonally balanced dataset. This prevents the "winter bias" (capturing only early months of a year) and provides a rich, 1.3-million-record database optimized for temporal biodiversity trends before the dashboarding phase.
+*   **Automation:** This ensures that the global biodiversity dataset is updated, cleaned, and tested automatically without manual intervention.
 
 ## 5. Visualization (Dashboard)
 *Current State:* The cleaned tables are connected to a dashboard to visualize:

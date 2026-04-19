@@ -129,3 +129,31 @@ This document records the exact technical steps taken to build the infrastructur
 5. **Final Status:**
    - Command: `uv run dbt build`
    - Result: **STAGING GREEN**. All 8 tests (4 unique, 4 not_null) are passing.
+
+## Phase 6: Orchestration & The "First Green DAG"
+1. **Airflow Setup:**
+   - Implemented Airflow 3 with a symlinked DAG structure.
+   - Target: Orchestrate `dlt ingestion` -> `dbt transformation` sequentially.
+
+2. **The "Example failure" Challenge:**
+   - Initial run showed failure in dbt. 
+   - **Diagnosis:** It wasn't the biodiversity data, but the default dbt "example" models that were failing their own tests. (Failed: `not_null_my_first_dbt_model_id`).
+   - **Action:** Deleted the `models/example` folder. 
+   - **Result:** Successfully achieved a **"Green DAG"** with 10k records. Proof of concept verified.
+
+## Phase 7: Scaling to the "Massive Decade" (Seasonally Balanced)
+1. **Decision to Scale:**
+   - Based on the success of Phase 6, we targeted a 10-year historical dataset (2015-2026).
+   - **Problem:** GBIF API restricts searches to a 100k "offset" limit. A simple year-by-year loop would be biased towards the beginning of the year.
+
+2. **The "Balanced Multi-Year" Solution:**
+   - Refactored `gbif_ingestion.py` to use a nested loop: `Year -> Month -> Offset`.
+   - Configuration: 10,000 records per month for 11 years (132 iterations).
+   - Expected Output: **~1.3 Million records**, balanced across all seasons.
+
+3. **Performance Optimization:**
+   - Anticipating 1.3M records, optimized `fct_biodiversity_sightings` Mart:
+     - **Partitioning:** By `occurrence_timestamp` (Day).
+     - **Clustering:** By `species` and `country_code`.
+
+4. **Status:** Ready for full-scale production run and Looker Studio visualization.
