@@ -104,8 +104,16 @@ This document records the exact technical steps taken to build the infrastructur
 1. **Project Configuration:**
    - Created `dbt_transformation` project.
    - Setup `profiles.yml` in `~/.dbt/profiles.yml`.
-   - Configured service account authentication using JSON key.
-   - Forced `location: EU` to match GCS and BigQuery dataset settings.
+   -## 19/04/2026 - Sesión de Escalado y Optimización
+*   **Logros:** Refactorización total de la ingesta (10 años, equilibrado por meses). Corregido `taxonKey` para Mammalia. Añadido `time.sleep(1)` para evitar bloqueos 429 de la API.
+*   **Estado:** Pipeline pausado y listo para arrancar. BigQuery preparado para recibir 1.3M de registros.
+
+## PASOS PARA MAÑANA (A PRIMERA HORA):
+1.  **Arrancar Ingesta:** En Airflow, poner el DAG `biomonitor_pipeline` en **UNPAUSE**. Tardará aprox 75 min (podemos ir desayunando).
+2.  **Verificar dbt:** Una vez termine la ingesta, dbt correrá automáticamente para crear `fct_biodiversity_sightings`.
+3.  **Dashboard:** Conectar BigQuery a Looker Studio y crear los mapas de calor por especie y estados de conservación.
+
+¡Mañana terminamos el proyecto! 🚀🐘✨
    - Target project: `biomonitorcapstone`, Dataset: `biomonitor_dbt`.
 
 2. **Initial Verification:**

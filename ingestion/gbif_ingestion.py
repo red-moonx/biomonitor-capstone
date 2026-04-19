@@ -1,5 +1,6 @@
 import dlt
 import requests
+import time
 from datetime import datetime
 
 def get_gbif_data_month_by_month(start_year=2015, end_year=2026, limit_per_month=10000):
@@ -26,7 +27,7 @@ def get_gbif_data_month_by_month(start_year=2015, end_year=2026, limit_per_month
             
             while month_records_fetched < limit_per_month:
                 params = {
-                    "classKey": 359,  # Mammalia
+                    "taxonKey": 359,  # Mammalia (standard recursive key)
                     "year": year,
                     "month": month,
                     "limit": page_size,
@@ -36,14 +37,20 @@ def get_gbif_data_month_by_month(start_year=2015, end_year=2026, limit_per_month
 
                 try:
                     response = requests.get(url, params=params, timeout=30)
+                    print(f"   [DEBUG] Calling: {response.url} | Status: {response.status_code}")
                     response.raise_for_status()
+                    time.sleep(1) # Rate limiting protection
                 except Exception as e:
                     print(f"   Error in {year}-{month} at offset {offset}: {e}")
                     break
                 
                 data = response.json()
                 results = data.get("results", [])
+                total_in_query = data.get("count", 0)
                 
+                if offset == 0:
+                    print(f"   (API reports {total_in_query} total available for this month)")
+
                 if not results:
                     break
                     
