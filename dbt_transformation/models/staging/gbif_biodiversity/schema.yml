@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: stg_gbif_occurrences
+    description: "Cleaned occurrence records from GBIF. This model serves as the foundation for biodiversity analysis."
+    columns:
+      - name: gbif_id
+        description: "The unique identifier for the occurrence record in GBIF."
+        tests:
+          - unique
+          - not_null
+
+      - name: latitude
+        description: "The decimal latitude of the occurrence."
+        tests:
+          - not_null
+
+      - name: longitude
+        description: "The decimal longitude of the occurrence."
+        tests:
+          - not_null
+
+      - name: occurrence_timestamp
+        description: "The timestamp when the occurrence was recorded."
+        tests:
+          - not_null
+
+      - name: species
+        description: "The scientific name of the species."
+        tests:
+          - not_null
+
+      - name: country_code
+        description: "The 2-letter ISO code of the country."
+        tests:
+          - not_null

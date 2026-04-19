@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: gbif_biodiversity
+    database: biomonitorcapstone
+    schema: biomonitor_data
+    tables:
+      - name: raw_mammals

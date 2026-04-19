@@ -17,3 +17,5 @@ logs/
 .venv/
 ingestion/.dlt/
 ingestion/uv.lock
+
+.bruin.yml

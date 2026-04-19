@@ -99,3 +99,33 @@ This document records the exact technical steps taken to build the infrastructur
    - Successful load of **10,000 global records** of Mammalia.
    - Verification: Confirmed data staging in GCS Parquet files before BigQuery load.
    - Status: **RAW LAYER COMPLETE**. Ready for dbt transformation.
+
+## Phase 5: Transformation (dbt)
+1. **Project Configuration:**
+   - Created `dbt_transformation` project.
+   - Setup `profiles.yml` in `~/.dbt/profiles.yml`.
+   - Configured service account authentication using JSON key.
+   - Forced `location: EU` to match GCS and BigQuery dataset settings.
+   - Target project: `biomonitorcapstone`, Dataset: `biomonitor_dbt`.
+
+2. **Initial Verification:**
+   - Command: `uv run dbt debug`
+   - Result: **SUCCESS**. Connection established.
+
+3. **Staging Model Implementation (`stg_gbif_occurrences.sql`):**
+   - Goal: Clean raw data and rename reserved keywords (like `order`).
+   - Strategy: Used CTEs for Renamed, Filtered, and Deduplicated layers.
+
+4. **Debugging & Quality Tests:**
+   - **Problem 1 (Duplicates):** 8 records with duplicate `gbif_id`.
+     - *Solution:* Implemented `row_number() over (partition by gbif_id order by event_date desc)`.
+   - **Problem 2 (Timestamp formatting):** BigQuery failed on ISO intervals like `2026-01-04T07:40Z/2026-01-04T13:50Z`.
+     - *Solution:* Used `SAFE_CAST(SPLIT(event_date, '/')[OFFSET(0)] AS TIMESTAMP)`. This extracts only the start date/time of the interval.
+   - **Problem 3 (Test Failures - Nulls):** Found 167 records without species name and 7 without country code.
+     - *Solution:* Applied strict `WHERE` filtering in the staging model to ensure `species` and `country_code` are not null.
+   - **Problem 4 (BigQuery Errors):** SQL error `Function not found: cast; Did you mean safe.last?`.
+     - *Solution:* Fixed typo from `safe.cast` to `safe_cast`.
+
+5. **Final Status:**
+   - Command: `uv run dbt build`
+   - Result: **STAGING GREEN**. All 8 tests (4 unique, 4 not_null) are passing.
