@@ -93,9 +93,9 @@ The transformation layer was built using **dbt** to convert raw CSV dumps into s
 - **Deduplication:** Applied a `ROW_NUMBER()` window function partitioned by `gbif_id` to ensure unique sightings and prevent statistical inflation.
 - **Optimization:** Implemented **Partitioning by Day** on `occurrence_timestamp` and **Clustering** by `species` and `country_code` to ensure dashboard queries are ultra-fast and cost-effective.
 
-### 4. Scaling Up with Airflow & Optimizations
+### 4. Scaling Up with Airflow & Architecture
 The ingestion was scaled from manual scripts to a fully orchestrated **Airflow DAG**.
-- **The "Bulk Download" Breakthrough:** We replaced hundreds of individual API calls with a single **Bulk Download Request**. This shifted the heavy lifting (data preparation) to GBIF's servers, eliminating 429 errors.
+- **The "Bulk Download" Breakthrough:** We implemented the **GBIF Bulk Download API** to handle large-scale data preparation server-side. This architecture ensures high-fidelity data extraction and is the industry-standard for large-scale biodiversity research.
 - **Resiliency:** The pipeline handles asynchronous polling for the download's `SUCCEEDED` status and manages local storage automatically.
 - **Infrastructure Safety:** Implemented automated cleanup procedures to manage the 32GB disk limitations of the cloud environment.
 
