@@ -19,3 +19,6 @@ ingestion/.dlt/
 ingestion/uv.lock
 
 .bruin.yml
+# Archivos privados
+bitacora.txt
+technical_report.md
