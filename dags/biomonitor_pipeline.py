@@ -19,9 +19,10 @@ with DAG(
     'biomonitor_pipeline',
     default_args=default_args,
     description='Full pipeline: Ingest GBIF data (dlt) and transform it (dbt)',
-    schedule='@monthly',  # Corrected for Airflow 3
+    schedule=None,  # Manual trigger only to avoid 'ghost' runs
     start_date=datetime(2025, 1, 1),
     catchup=False,
+    max_active_runs=1,
     tags=['biomonitor', 'ingestion', 'dbt'],
 ) as dag:
 

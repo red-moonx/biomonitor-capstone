@@ -37,11 +37,19 @@ def get_gbif_data_month_by_month(start_year=2015, end_year=2026, limit_per_month
 
                 try:
                     response = requests.get(url, params=params, timeout=30)
+                    
+                    # Backoff strategy for 429 Too Many Requests
+                    if response.status_code == 429:
+                        print(f"   [!] Rate limit hit (429). Sleeping 60s before retry...")
+                        time.sleep(60)
+                        continue # Retry the same offset/month
+                        
                     print(f"   [DEBUG] Calling: {response.url} | Status: {response.status_code}")
                     response.raise_for_status()
                     time.sleep(1) # Rate limiting protection
                 except Exception as e:
                     print(f"   Error in {year}-{month} at offset {offset}: {e}")
+                    time.sleep(5) # Brief wait before skipping
                     break
                 
                 data = response.json()
@@ -73,7 +81,7 @@ def run_pipeline():
     """Configures and runs the dlt pipeline with GCS staging (Data Lake)"""
     
     current_year = datetime.now().year
-    start_year = current_year - 11 
+    start_year = 2020 
     
     pipeline = dlt.pipeline(
         pipeline_name="mammal_monitor_global",
