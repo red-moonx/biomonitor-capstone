@@ -1,13 +1,14 @@
 # 🌿 BioMonitor: Global Biodiversity Tracking & Conservation Pipeline
 
-## 📖 Problem Statement
-Biodiversity data is currently being generated at an unprecedented scale from disparate sources: professional research, satellite monitoring, and large-scale citizen science platforms. However, this global data is often **inaccessible** due to complex API structures, **messy** with over 100 columns of inconsistent metadata, and **not optimized** for cost-effective spatial or temporal analysis.
+## 📖 Problem Statement & Objective
+Marine biodiversity, specifically concerning **Cetaceans (whales, dolphins, and porpoises)**, is a critical indicator of ocean health. However, tracking these species globally is challenging due to the disparate nature of sighting reports and the massive volume of inconsistent metadata.
 
-**Global BioMonitor** solves this by providing an automated end-to-end ELT pipeline that:
-1.  **Ingests** worldwide species occurrences without geographic restrictions.
-2.  **Centralizes** raw data into a scalable Data Lake (GCS).
-3.  **Transforms and Optimizes** the data in a BigQuery Data Warehouse using partitioning and clustering.
-4.  **Visualizes** trends to help stakeholders identify ecological hotspots and data coverage gaps globally.
+**Global BioMonitor** is designed to answer a specific research question: *What are the global spatial and seasonal distribution patterns of Cetaceans from 2021 to 2026?*
+
+To achieve this, the pipeline:
+1.  **Ingests** high-fidelity Cetacea occurrence data (Taxon Order 733).
+2.  **Centralizes** the data into a scalable Data Warehouse.
+3.  **Transforms and Optimizes** the records for professional-grade geospatial analysis.
 
 ## 🏗️ Architecture
 The pipeline follows standard data engineering best practices learned during the **Data Engineering Zoomcamp**:
@@ -69,10 +70,9 @@ The project infrastructure was provisioned using **Terraform**, ensuring a repro
 - **Resources:** One GCS bucket for the Data Lake and two BigQuery datasets (`biomonitor_raw` for ingestion and `biomonitor_dbt` for analytics).
 - **Configuration:** All resources are provisioned in the `europe-west1` (EU) region to ensure data locality and optimized performance.
 
-### 2. Ingestion Strategy & Test Phase
-Initially, the pipeline targeted the entire **Mammalia** class (over 12 million records) using parallel API searches.
-- **Challenge:** The high volume led to 429 Rate Limit errors and excessive processing times in the cloud-free-tier environment.
-- **Pivot:** For the final version, we focused on high-quality **Cetacea** (Order 733) data from 2021-2026 (~700k records). This allowed for faster iteration and a more curated, high-interest dataset for spatial analysis.
+### 2. Research Focus & Dataset Refinement
+Initially, the pipeline architecture was tested using the broad **Mammalia** class as a benchmark for high-volume ingestion. 
+- **Strategic Refinement:** Once the infrastructure was validated, we refined the scope to our core research target: **Cetacea** (Order 733). By focusing on this specific group for the 2021-2026 period (~700k records), we ensured a much higher density of specific marine metadata, allowing for a more nuanced and impactful geospatial analysis.
 
 ### 3. Analytics Engineering (dbt)
 The transformation layer was built using **dbt** to convert raw CSV dumps into structured, analytics-ready tables.
