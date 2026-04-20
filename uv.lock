@@ -528,9 +528,11 @@ dependencies = [
     { name = "gcsfs" },
     { name = "google-cloud-bigquery-storage", version = "2.36.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.11' and platform_python_implementation == 'PyPy') or (python_full_version < '3.11' and sys_platform == 'emscripten')" },
     { name = "google-cloud-bigquery-storage", version = "2.37.0", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.11' and platform_python_implementation == 'PyPy') or (python_full_version >= '3.11' and sys_platform == 'emscripten') or (platform_python_implementation != 'PyPy' and sys_platform != 'emscripten')" },
+    { name = "google-cloud-storage" },
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pandas", version = "3.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pyarrow" },
+    { name = "python-dotenv" },
 ]
 
 [package.metadata]
@@ -540,8 +542,10 @@ requires-dist = [
     { name = "dlt", extras = ["bigquery"] },
     { name = "gcsfs" },
     { name = "google-cloud-bigquery-storage" },
+    { name = "google-cloud-storage", specifier = ">=3.1.1" },
     { name = "pandas" },
     { name = "pyarrow" },
+    { name = "python-dotenv", specifier = ">=1.2.2" },
 ]
 
 [[package]]

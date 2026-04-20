@@ -59,5 +59,51 @@ The final dashboard provides critical insights through:
 4. **Dashboard:** Connect the BigQuery tables to Looker Studio.
 
 ---
+---
 *This project was completed as part of the [Data Engineering Zoomcamp](https://github.com/DataTalksClub/data-engineering-zoomcamp).*
+
+## 🔍 Technical Deep Dive & Project Evolution
+
+### 1. Infrastructure (Terraform)
+The project infrastructure was provisioned using **Terraform**, ensuring a reproducible and state-managed environment on GCP.
+- **Resources:** One GCS bucket for the Data Lake and two BigQuery datasets (`biomonitor_raw` for ingestion and `biomonitor_dbt` for analytics).
+- **Configuration:** All resources are provisioned in the `europe-west1` (EU) region to ensure data locality and optimized performance.
+
+### 2. Ingestion Strategy & Test Phase
+Initially, the pipeline targeted the entire **Mammalia** class (over 12 million records) using parallel API searches.
+- **Challenge:** The high volume led to 429 Rate Limit errors and excessive processing times in the cloud-free-tier environment.
+- **Pivot:** For the final version, we focused on high-quality **Cetacea** (Order 733) data from 2021-2026 (~700k records). This allowed for faster iteration and a more curated, high-interest dataset for spatial analysis.
+
+### 3. Analytics Engineering (dbt)
+The transformation layer was built using **dbt** to convert raw CSV dumps into structured, analytics-ready tables.
+
+#### Staging Layer (`stg_gbif_occurrences`)
+- **Schema Mapping:** Standardized inconsistent GBIF `SIMPLE_CSV` column names (e.g., `gbifid`, `decimallatitude`) to professional snake_case conventions (`gbif_id`, `latitude`).
+- **Column Selection (The Core 18):**
+    - **Identifiers:** `gbif_id`, `occurrence_id`.
+    - **Taxonomy:** `species`, `scientific_name`, `kingdom`, `phylum`, `class`, `species_order`, `family`, `genus`, `taxon_rank`.
+    - **Geospatial:** `latitude`, `longitude`, `country_code`, `locality`.
+    - **Temporal:** `occurrence_timestamp`, `occurrence_year`, `occurrence_month`.
+    - **Provenance:** `occurrence_status`, `basis_of_record`, `recorded_by`.
+- **Data Typing:** Cast raw strings to appropriate formats: `FLOAT64` for coordinates, `TIMESTAMP` for event dates, and `INT64` for temporal components.
+- **Data Cleaning:** Implemented strict quality filters, removing records with missing coordinates or species names to ensure dashboard accuracy.
+
+#### Marts Layer (`fct_biodiversity_sightings`)
+- **Enrichment:** Added an `occurrence_season` dimension (Winter, Spring, Summer, Autumn) based on the month to enable seasonal pattern analysis.
+- **Deduplication:** Applied a `ROW_NUMBER()` window function partitioned by `gbif_id` to ensure unique sightings and prevent statistical inflation.
+- **Optimization:** Implemented **Partitioning by Day** on `occurrence_timestamp` and **Clustering** by `species` and `country_code` to ensure dashboard queries are ultra-fast and cost-effective.
+
+### 4. Scaling Up with Airflow & Optimizations
+The ingestion was scaled from manual scripts to a fully orchestrated **Airflow DAG**.
+- **The "Bulk Download" Breakthrough:** We replaced hundreds of individual API calls with a single **Bulk Download Request**. This shifted the heavy lifting (data preparation) to GBIF's servers, eliminating 429 errors.
+- **Resiliency:** The pipeline handles asynchronous polling for the download's `SUCCEEDED` status and manages local storage automatically.
+- **Infrastructure Safety:** Implemented automated cleanup procedures to manage the 32GB disk limitations of the cloud environment.
+
+### 5. Final End-to-End Workflow
+The final pipeline operates as a coordinated **Hybrid Cloud** process:
+1.  **Request (Cloud Source):** Airflow triggers a Bulk Download request on GBIF's cloud infrastructure.
+2.  **Wait (Async Polling):** The DAG polls the API until the server-side ZIP preparation is complete.
+3.  **Transfer (Bridge):** Airflow downloads the compressed ZIP to the local environment and streams it to **BigQuery** in 50k-record chunks using `dlt`.
+4.  **Transform (Cloud Destination):** Once the raw data is in BigQuery, Airflow triggers `dbt build` to execute the transformation models.
+5.  **Visualize:** The final fact table is consumed by **Looker Studio** for real-time biodiversity analysis.
 

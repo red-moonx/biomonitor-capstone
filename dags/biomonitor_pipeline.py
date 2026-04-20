@@ -29,7 +29,8 @@ with DAG(
     # Task 1: dlt ingestion
     ingest_task = BashOperator(
         task_id='ingest_gbif_data',
-        bash_command='cd /workspaces/biomonitor-capstone/ingestion && /home/codespace/.bruin/uv run python gbif_ingestion.py',
+        bash_command='cd /workspaces/biomonitor-capstone/ingestion && /workspaces/biomonitor-capstone/.venv/bin/python gbif_ingestion.py',
+        env={'PYTHONUNBUFFERED': '1'},
     )
 
     # Task 2: dbt transformation

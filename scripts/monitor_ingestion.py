@@ -3,97 +3,88 @@ import time
 import re
 from datetime import datetime
 
-# Path configuration
-PROJECT_DIR = "/workspaces/biomonitor-capstone"
-LOGS_DIR = os.path.join(PROJECT_DIR, "airflow_home/logs/dag_id=biomonitor_pipeline")
+# Path to Airflow logs
+LOGS_DIR = "/workspaces/biomonitor-capstone/airflow_home/logs/dag_id=biomonitor_pipeline"
 
-def calculate_total_months(start_year=2020):
-    """Calculates total months to process from start_year to today."""
-    now = datetime.now()
-    total = (now.year - start_year) * 12 + now.month
-    return total
-
-def get_latest_log():
-    """Finds the most recent log file for the ingestion task based on modification time."""
+def get_latest_log_file():
+    """Finds the most recent log file for the ingestion task."""
     if not os.path.exists(LOGS_DIR):
         return None
     
-    # Find all run directories and their modification times
-    runs = []
-    for d in os.listdir(LOGS_DIR):
-        path = os.path.join(LOGS_DIR, d)
-        if os.path.isdir(path):
-            runs.append((path, os.path.getmtime(path)))
-    
+    # Get all run directories
+    runs = [d for d in os.listdir(LOGS_DIR) if os.path.isdir(os.path.join(LOGS_DIR, d))]
     if not runs:
         return None
     
-    # Sort by modification time (newest first)
-    latest_run_path = sorted(runs, key=lambda x: x[1], reverse=True)[0][0]
-    task_dir = os.path.join(latest_run_path, "task_id=ingest_gbif_data")
+    # Sort to get the latest run
+    latest_run = sorted(runs)[-1]
+    task_dir = os.path.join(LOGS_DIR, latest_run, "task_id=ingest_gbif_data")
     
     if not os.path.exists(task_dir):
         return None
     
-    # Find latest attempt
-    attempts = []
-    for f in os.listdir(task_dir):
-        if f.endswith(".log"):
-            path = os.path.join(task_dir, f)
-            attempts.append((path, os.path.getmtime(path)))
-    
+    # Get the latest attempt log
+    attempts = [f for f in os.listdir(task_dir) if f.endswith(".log")]
     if not attempts:
         return None
     
-    # Sort by modification time (newest first)
-    latest_attempt_path = sorted(attempts, key=lambda x: x[1], reverse=True)[0][0]
-    return latest_attempt_path
+    latest_attempt = sorted(attempts)[-1]
+    return os.path.join(task_dir, latest_attempt)
 
 def monitor():
-    start_year = 2020
-    total_months = calculate_total_months(start_year)
+    print("🚀 Monitoring BioMonitor BULK Ingestion: CETACEANS (Order: 733) 🐳")
+    print("📅 Range: 2021-2026 | Dataset size: ~700,000 records")
+    print("-----------------------------------------------------------------")
     
-    print(f"🚀 Monitoring BioMonitor Ingestion (every 5 minutes)...")
-    print(f"📅 Plan: From {start_year}-01 to {datetime.now().strftime('%Y-%m')} ({total_months} months total)")
-    print("-" * 65)
+    last_status = None
     
     while True:
-        log_file = get_latest_log()
+        log_file = get_latest_log_file()
+        now = datetime.now().strftime('%H:%M:%S')
         
         if not log_file:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] Waiting for Airflow task to generate logs...")
+            msg = "⏳ Waiting for Airflow task to start..."
+            if msg != last_status:
+                print(f"[{now}] {msg}")
+                last_status = msg
         else:
             try:
                 with open(log_file, "r") as f:
                     content = f.read()
                 
-                # Matches "Fetching: YYYY-MM" to see what's current
-                fetching_matches = re.findall(r'Fetching: (\d{4}-\d{2})', content)
-                # Matches "Done YYYY-MM" to count completed months
-                done_matches = re.findall(r'Done \d{4}-\d{2}', content)
+                # Deduce current status
+                current_msg = ""
                 
-                if fetching_matches:
-                    last_month = fetching_matches[-1]
-                    completed_count = len(done_matches)
-                    percentage = (completed_count / total_months) * 100
-                    
-                    # Search for total records
-                    total_match = re.findall(r'Total: (\d+)\)', content)
-                    records_str = f" | Records: {total_match[-1]}" if total_match else ""
-                    
-                    status = "🟢 Processing" if "Finished" not in content else "🏁 Finished"
-                    
-                    print(f"[{datetime.now().strftime('%H:%M:%S')}] {status}: {last_month} | Progress: {percentage:.1f}% ({completed_count}/{total_months} months){records_str}")
+                if "Pipeline run successfully" in content:
+                    current_msg = "🏁 FINISHED! Cetaceans ingested to BigQuery."
+                elif "Processing chunk" in content:
+                    chunk_match = re.findall(r'Processing chunk (\d+) \(approx (\d+) records\)', content)
+                    if chunk_match:
+                        c_num, c_records = chunk_match[-1]
+                        current_msg = f"📦 Loading to BigQuery | Chunk: {c_num} | Records: ~{c_records}"
+                elif "🏁 Download is READY!" in content:
+                    current_msg = "📥 Downloading ZIP file from GBIF..."
+                elif "[STATUS]" in content:
+                    status_match = re.findall(r'\[STATUS\] (\w+)', content)
+                    if status_match:
+                        status = status_match[-1]
+                        current_msg = f"⏳ GBIF Preparing Package | Status: {status}"
+                elif "✅ Download requested!" in content:
+                    current_msg = "🚀 Request sent to GBIF (waiting for queue)"
                 else:
-                    # Check if the task failed
-                    if "Task failed" in content or "ERROR" in content:
-                        print(f"[{datetime.now().strftime('%H:%M:%S')}] 🔴 Task reported an error. Check logs.")
-                    else:
-                        print(f"[{datetime.now().strftime('%H:%M:%S')}] ⏳ Task started, initializing ingestion engine...")
+                    current_msg = "🟢 Task started, initializing..."
+
+                if current_msg != last_status:
+                    print(f"[{now}] {current_msg}")
+                    last_status = current_msg
+                    
+                if "FINISHED" in current_msg:
+                    break
+                    
             except Exception as e:
-                print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚠️ Error: {e}")
+                pass
         
-        time.sleep(300) # 5 minutes
+        time.sleep(5)
 
 if __name__ == "__main__":
     monitor()

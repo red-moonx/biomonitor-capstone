@@ -1,103 +1,122 @@
 import dlt
 import requests
 import time
-from datetime import datetime
+import os
+import zipfile
+import pandas as pd
+from dotenv import load_dotenv
 
-def get_gbif_data_month_by_month(start_year=2015, end_year=2026, limit_per_month=10000):
-    """
-    Request global Mammalia data from GBIF's API iterating through YEARS and MONTHS.
-    This ensures a balanced seasonal dataset and bypasses the 100k offset limit.
-    """
-    url = "https://api.gbif.org/v1/occurrence/search"
-    page_size = 300 
-    global_records_fetched = 0
+# Load secrets
+load_dotenv()
 
-    print(f"Starting SCIENTIFIC ingestion (balanced by months) from {start_year} to {end_year}...")
+GBIF_USER = os.getenv("GBIF_USER")
+GBIF_PASSWORD = os.getenv("GBIF_PASSWORD")
+GBIF_EMAIL = os.getenv("GBIF_EMAIL")
 
-    for year in range(start_year, end_year + 1):
-        for month in range(1, 13):
-            # Skip future months if we are in the current year
-            if year == datetime.now().year and month > datetime.now().month:
-                break
-                
-            offset = 0
-            month_records_fetched = 0
-            
-            print(f">>> Fetching: {year}-{month:02d} (Target: {limit_per_month} records)")
-            
-            while month_records_fetched < limit_per_month:
-                params = {
-                    "taxonKey": 359,  # Mammalia (standard recursive key)
-                    "year": year,
-                    "month": month,
-                    "limit": page_size,
-                    "offset": offset,
-                    "occurrenceStatus": "PRESENT"
-                }
-
-                try:
-                    response = requests.get(url, params=params, timeout=30)
-                    
-                    # Backoff strategy for 429 Too Many Requests
-                    if response.status_code == 429:
-                        print(f"   [!] Rate limit hit (429). Sleeping 60s before retry...")
-                        time.sleep(60)
-                        continue # Retry the same offset/month
-                        
-                    print(f"   [DEBUG] Calling: {response.url} | Status: {response.status_code}")
-                    response.raise_for_status()
-                    time.sleep(1) # Rate limiting protection
-                except Exception as e:
-                    print(f"   Error in {year}-{month} at offset {offset}: {e}")
-                    time.sleep(5) # Brief wait before skipping
-                    break
-                
-                data = response.json()
-                results = data.get("results", [])
-                total_in_query = data.get("count", 0)
-                
-                if offset == 0:
-                    print(f"   (API reports {total_in_query} total available for this month)")
-
-                if not results:
-                    break
-                    
-                for record in results:
-                    yield record
-                    month_records_fetched += 1
-                    global_records_fetched += 1
-                    
-                offset += len(results)
-                
-                # Check GBIF safety limit
-                if offset >= 100000:
-                    break
-
-            print(f"   Done {year}-{month:02d}: {month_records_fetched} records. (Total: {global_records_fetched})")
-
-    print(f"\n--- Ingestion Finished. Total balanced records: {global_records_fetched} ---")
-
-def run_pipeline():
-    """Configures and runs the dlt pipeline with GCS staging (Data Lake)"""
+def trigger_download():
+    """Starts the bulk download request for Cetaceans (733)."""
+    url = "https://api.gbif.org/v1/occurrence/download/request"
     
-    current_year = datetime.now().year
-    start_year = 2020 
+    payload = {
+        "creator": GBIF_USER,
+        "notificationAddresses": [GBIF_EMAIL],
+        "sendNotification": True,
+        "format": "SIMPLE_CSV",
+        "predicate": {
+            "type": "and",
+            "predicates": [
+                {"type": "equals", "key": "TAXON_KEY", "value": "733"},
+                {"type": "greaterThanOrEquals", "key": "YEAR", "value": "2021"},
+                {"type": "lessThanOrEquals", "key": "YEAR", "value": "2026"},
+                {"type": "equals", "key": "OCCURRENCE_STATUS", "value": "PRESENT"}
+            ]
+        }
+    }
     
+    print(f"🚀 Requesting Bulk Download for CETACEANS from GBIF...")
+    response = requests.post(
+        url, 
+        json=payload, 
+        auth=(GBIF_USER, GBIF_PASSWORD),
+        headers={"Content-Type": "application/json"}
+    )
+    
+    if response.status_code != 201:
+        print(f"❌ Error triggering download: {response.status_code} - {response.text}")
+        response.raise_for_status()
+        
+    download_key = response.text
+    print(f"✅ Download requested! Key: {download_key}")
+    return download_key
+
+def wait_for_download(download_key):
+    """Polls the GBIF API until the download is ready."""
+    url = f"https://api.gbif.org/v1/occurrence/download/{download_key}"
+    
+    print(f"⏳ Waiting for GBIF to prepare the Cetacean records...")
+    while True:
+        response = requests.get(url, auth=(GBIF_USER, GBIF_PASSWORD))
+        data = response.json()
+        status = data.get("status")
+        
+        if status == "SUCCEEDED":
+            print(f"\n🏁 Download is READY!")
+            return data.get("downloadLink")
+        elif status in ["FAILED", "CANCELLED"]:
+            raise Exception(f"❌ GBIF Download {status}!")
+        else:
+            print(f"   [STATUS] {status}... (Checking again in 30s)")
+            time.sleep(30)
+
+def download_and_load(download_link):
+    """Downloads ZIP, extracts CSV and streams to BigQuery."""
+    zip_path = "gbif_cetaceans.zip"
+    csv_filename = "occurrence.txt"
+    
+    print(f"📥 Downloading file from {download_link}...")
+    with requests.get(download_link, stream=True) as r:
+        r.raise_for_status()
+        with open(zip_path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+    
+    print(f"📦 Streaming Cetacean data to BigQuery...")
+    
+    def csv_generator():
+        with zipfile.ZipFile(zip_path) as z:
+            # Find the CSV file dynamically
+            csv_files = [f for f in z.namelist() if f.endswith('.csv')]
+            if not csv_files:
+                raise Exception("❌ No CSV file found in the ZIP archive!")
+            
+            target_csv = csv_files[0]
+            print(f"   [ZIP] Extracting: {target_csv}")
+            
+            with z.open(target_csv) as f:
+                # SIMPLE_CSV is tab-separated
+                chunks = pd.read_csv(f, sep='\t', chunksize=50000, low_memory=False)
+                for i, chunk in enumerate(chunks):
+                    print(f"   [DLT] Processing chunk {i+1} (approx { (i+1)*50000 } records)...")
+                    # Clean column names for BigQuery compatibility
+                    chunk.columns = [c.replace(" ", "_").lower() for c in chunk.columns]
+                    yield chunk.to_dict(orient="records")
+
     pipeline = dlt.pipeline(
-        pipeline_name="mammal_monitor_global",
+        pipeline_name="gbif_cetaceans_ingestion",
         destination="bigquery",
-        staging="filesystem",
-        dataset_name="biomonitor_data"
-    )
-
-    # We use limit_per_month=10000 to get a solid 1M+ dataset across 10 years
-    info = pipeline.run(
-        get_gbif_data_month_by_month(start_year=start_year, end_year=current_year, limit_per_month=10000), 
-        table_name="raw_mammals", 
-        write_disposition="replace"
+        dataset_name="biomonitor_raw"
     )
     
-    print(info)
+    load_info = pipeline.run(csv_generator(), table_name="raw_mammals", write_disposition="replace")
+    print(load_info)
+    
+    if os.path.exists(zip_path):
+        os.remove(zip_path)
 
 if __name__ == "__main__":
-    run_pipeline()
+    if not all([GBIF_USER, GBIF_PASSWORD, GBIF_EMAIL]):
+        print("❌ Error: Missing credentials in .env file!")
+    else:
+        key = trigger_download()
+        link = wait_for_download(key)
+        download_and_load(link)

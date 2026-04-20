@@ -11,57 +11,52 @@ with source as (
 renamed as (
     select
         -- identifiers
-        cast(gbif_id as string) as gbif_id,
-        cast(occurrence_id as string) as occurrence_id,
+        cast(gbifid as string) as gbif_id,
+        cast(occurrenceid as string) as occurrence_id,
 
         -- taxonomic info
         species,
-        scientific_name,
+        scientificname as scientific_name,
         kingdom,
         phylum,
         class,
         "order" as species_order, -- order is a reserved word
         family,
         genus,
-        taxon_rank,
+        taxonrank as taxon_rank,
 
         -- spatial info
-        cast(decimal_latitude as float64) as latitude,
-        cast(decimal_longitude as float64) as longitude,
-        country,
-        country_code,
-        continent,
+        cast(decimallatitude as float64) as latitude,
+        cast(decimallongitude as float64) as longitude,
+        countrycode as country_code,
+        locality,
 
         -- temporal info
-        safe_cast(split(event_date, '/')[offset(0)] as timestamp) as occurrence_timestamp,
+        safe_cast(eventdate as timestamp) as occurrence_timestamp,
         cast(year as int64) as occurrence_year,
         cast(month as int64) as occurrence_month,
 
-        -- conservation info
-        iucn_red_list_category,
-        occurrence_status,
-        basis_of_record
+        -- status info
+        occurrencestatus as occurrence_status,
+        basisofrecord as basis_of_record,
+        recordedby as recorded_by
 
     from source
-    where decimal_latitude is not null 
-      and decimal_longitude is not null
+    where decimallatitude is not null 
+      and decimallongitude is not null
       and species is not null -- Filter out records without species name
-      and country_code is not null -- Filter out records without country code
+      and countrycode is not null -- Filter out records without country code
 )
 
-, filtered_timestamps as (
-    select * from renamed
-    where occurrence_timestamp is not null
-),
-
-deduplicated as (
+, deduplicated as (
     select 
         *,
         row_number() over (
             partition by gbif_id 
             order by occurrence_timestamp desc
         ) as row_num
-    from filtered_timestamps
+    from renamed
+    where occurrence_timestamp is not null
 )
 
 select 
