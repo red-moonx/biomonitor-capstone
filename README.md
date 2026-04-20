@@ -74,6 +74,9 @@ The final dashboard provides critical insights through four primary visualizatio
 
 👉 **[View the Live Dashboard Here](https://datastudio.google.com/s/vY97qzA18bk)**
 
+> [!NOTE]
+> This dashboard provides a **preliminary analytical view** of the dataset. The current architecture is designed for scalability; future iterations would involve the creation of specialized data marts to analyze correlations between sightings and environmental variables (such as sea surface temperature or chlorophyll levels) and implementing predictive modeling for migration patterns.
+
 ## 🚀 How to Reproduce
 
 ### 0. Prerequisites
