@@ -1,7 +1,6 @@
-streamlit
-pandas
-numpy
-plotly
-pyarrow
+streamlit>=1.30.0
+pandas>=2.0.0
+numpy>=1.24.0
+plotly>=5.18.0
+pyarrow>=14.0.0
 fastparquet
-packaging
