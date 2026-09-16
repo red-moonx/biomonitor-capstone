@@ -17,3 +17,8 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "streamlit>=1.30.0",
 ]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
