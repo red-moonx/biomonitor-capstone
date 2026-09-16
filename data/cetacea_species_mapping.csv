@@ -1,0 +1,88 @@
+species,common_name,family
+Balaena mysticetus,Bowhead Whale,Balaenidae
+Balaenoptera acutorostrata,Common Minke Whale,Balaenopteridae
+Balaenoptera bonaerensis,Antarctic Minke Whale,Balaenopteridae
+Balaenoptera borealis,Sei Whale,Balaenopteridae
+Balaenoptera edeni,Bryde's Whale,Balaenopteridae
+Balaenoptera musculus,Blue Whale,Balaenopteridae
+Balaenoptera omurai,Omura's Whale,Balaenopteridae
+Balaenoptera physalus,Fin Whale,Balaenopteridae
+Balaenoptera ricei,Rice's Whale,Balaenopteridae
+Berardius arnuxii,Arnoux's Beaked Whale,Ziphidae
+Berardius bairdii,Baird's Beaked Whale,Ziphidae
+Berardius minimus,Sato's Beaked Whale,Ziphidae
+Caperea marginata,Pygmy Right Whale,Cetotheriidae
+Cephalorhynchus commersonii,Commerson's Dolphin,Delphinidae
+Cephalorhynchus eutropia,Chilean Dolphin,Delphinidae
+Cephalorhynchus heavisidii,Heaviside's Dolphin,Delphinidae
+Cephalorhynchus hectori,Hector's Dolphin,Delphinidae
+Delphinapterus leucas,Beluga Whale,Monodontidae
+Delphinus delphis,Short-beaked Common Dolphin,Delphinidae
+Eschrichtius robustus,Gray Whale,Eschrichtiidae
+Eubalaena australis,Southern Right Whale,Balaenidae
+Eubalaena glacialis,North Atlantic Right Whale,Balaenidae
+Eubalaena japonica,North Pacific Right Whale,Balaenidae
+Feresa attenuata,Pygmy Killer Whale,Delphinidae
+Globicephala macrorhynchus,Short-finned Pilot Whale,Delphinidae
+Globicephala melas,Long-finned Pilot Whale,Delphinidae
+Grampus griseus,Risso's Dolphin,Delphinidae
+Hyperoodon ampullatus,North Atlantic Bottlenose Whale,Ziphidae
+Hyperoodon planifrons,Southern Bottlenose Whale,Ziphidae
+Indopacetus pacificus,Longman's Beaked Whale,Ziphidae
+Inia geoffrensis,Amazon River Dolphin (Boto),Iniidae
+Kogia breviceps,Pygmy Sperm Whale,Kogiidae
+Kogia sima,Dwarf Sperm Whale,Kogiidae
+Lagenodelphis hosei,Fraser's Dolphin,Delphinidae
+Lagenorhynchus acutus,Atlantic White-sided Dolphin,Delphinidae
+Lagenorhynchus albirostris,White-beaked Dolphin,Delphinidae
+Lagenorhynchus australis,Peale's Dolphin,Delphinidae
+Lagenorhynchus cruciger,Hourglass Dolphin,Delphinidae
+Lagenorhynchus obliquidens,Pacific White-sided Dolphin,Delphinidae
+Lagenorhynchus obscurus,Dusky Dolphin,Delphinidae
+Lissodelphis borealis,Northern Right Whale Dolphin,Delphinidae
+Lissodelphis peronii,Southern Right Whale Dolphin,Delphinidae
+Megaptera novaeangliae,Humpback Whale,Balaenopteridae
+Mesoplodon bidens,Sowerby's Beaked Whale,Ziphidae
+Mesoplodon carlhubbsi,Hubbs' Beaked Whale,Ziphidae
+Mesoplodon densirostris,Blainville's Beaked Whale,Ziphidae
+Mesoplodon eueu,Ramari's Beaked Whale,Ziphidae
+Mesoplodon europaeus,Gervais' Beaked Whale,Ziphidae
+Mesoplodon ginkgodens,Ginkgo-toothed Beaked Whale,Ziphidae
+Mesoplodon grayi,Gray's Beaked Whale,Ziphidae
+Mesoplodon layardii,Strap-toothed Whale,Ziphidae
+Mesoplodon mirus,True's Beaked Whale,Ziphidae
+Mesoplodon stejnegeri,Stejneger's Beaked Whale,Ziphidae
+Mesoplodon traversii,Spade-toothed Whale,Ziphidae
+Monodon monoceros,Narwhal,Monodontidae
+Neophocaena asiaeorientalis,Yangtze Finless Porpoise,Phocoenidae
+Neophocaena phocaenoides,Indo-Pacific Finless Porpoise,Phocoenidae
+Orcaella brevirostris,Irrawaddy Dolphin,Delphinidae
+Orcaella heinsohni,Australian Snubfin Dolphin,Delphinidae
+Orcinus orca,Orca (Killer Whale),Delphinidae
+Peponocephala electra,Melon-headed Whale,Delphinidae
+Phocoena dioptrica,Spectacled Porpoise,Phocoenidae
+Phocoena phocoena,Harbor Porpoise,Phocoenidae
+Phocoena spinipinnis,Burmeister's Porpoise,Phocoenidae
+Phocoenoides dalli,Dall's Porpoise,Phocoenidae
+Physeter macrocephalus,Sperm Whale,Physeteridae
+Platanista gangetica,South Asian River Dolphin,Platanistidae
+Pontoporia blainvillei,Franciscan Dolphin,Pontoporiidae
+Pseudorca crassidens,False Killer Whale,Delphinidae
+Sotalia fluviatilis,Tucuxi,Delphinidae
+Sotalia guianensis,Guiana Dolphin,Delphinidae
+Sousa chinensis,Indo-Pacific Humpback Dolphin,Delphinidae
+Sousa plumbea,Indian Ocean Humpback Dolphin,Delphinidae
+Sousa sahulensis,Australian Humpback Dolphin,Delphinidae
+Sousa teuszii,Atlantic Humpback Dolphin,Delphinidae
+Stenella attenuata,Pantropical Spotted Dolphin,Delphinidae
+Stenella clymene,Clymene Dolphin,Delphinidae
+Stenella coeruleoalba,Striped Dolphin,Delphinidae
+Stenella frontalis,Atlantic Spotted Dolphin,Delphinidae
+Stenella longirostris,Spinner Dolphin,Delphinidae
+Steno bredanensis,Rough-toothed Dolphin,Delphinidae
+Tasmacetus shepherdi,Shepherd's Beaked Whale,Ziphidae
+Tursiops aduncus,Indo-Pacific Bottlenose Dolphin,Delphinidae
+Tursiops australis,Burrunan Dolphin,Delphinidae
+Tursiops erebennus,Tamanend's Bottlenose Dolphin,Delphinidae
+Tursiops truncatus,Common Bottlenose Dolphin,Delphinidae
+Ziphius cavirostris,Cuvier's Beaked Whale,Ziphidae

@@ -12,6 +12,8 @@ dependencies = [
     "google-cloud-bigquery-storage",
     "google-cloud-storage>=3.1.1",
     "pandas",
+    "plotly>=5.18.0",
     "pyarrow",
     "python-dotenv>=1.2.2",
+    "streamlit>=1.30.0",
 ]

@@ -1,5 +1,9 @@
 # 🐋 Whale BioMonitor: Global biodiversity tracking & conservation pipeline
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://whale-biomonitor.streamlit.app)
+
+👉 **[🚀 Click here to open the Interactive Streamlit Web App](https://whale-biomonitor.streamlit.app)**
+
 ## 📖 Problem Statement & Objective
 Marine biodiversity is a critical indicator of our planet's ocean health. However, monitoring this biodiversity is notoriously difficult; raw data is often **disparate, messy, and voluminous**, originating from countless sources with inconsistent formats and varying quality.
 
@@ -73,6 +77,33 @@ The final dashboard provides critical insights through four primary visualizatio
 4. **Conservation & Endangered Species:** An analysis of sighting volume categorized by IUCN risk levels.
 
 👉 **[View the Live Dashboard Here](https://datastudio.google.com/s/vY97qzA18bk)**
+
+## 💻 Running the Streamlit App Locally
+
+If you clone this repository and want to launch the **Whale BioMonitor Streamlit Dashboard** locally, follow these steps:
+
+### Option A: Using `pip` (Standard Python)
+```bash
+# 1. Clone the repository
+git clone https://github.com/red-moonx/biomonitor-capstone.git
+cd biomonitor-capstone
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Launch Streamlit
+streamlit run app.py
+```
+
+### Option B: Using `uv` (Fast Package Manager)
+```bash
+# 1. Sync environment
+uv sync
+
+# 2. Launch Streamlit
+uv run streamlit run app.py
+```
+
 
 > [!NOTE]
 > This dashboard provides a **preliminary analytical view** of the dataset. The current architecture is designed for scalability; future iterations would involve the creation of specialized data marts to analyze correlations between sightings and environmental variables (such as sea surface temperature or chlorophyll levels) and implementing predictive modeling for migration patterns.
